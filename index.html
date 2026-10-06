@@ -3,31 +3,410 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>School AI Chatbot</title>
-  <link rel="stylesheet" href="style.css">
+
+  <title>School AI Chatbot Helper</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e8f0ff, #f7f9ff);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 650px;
+      height: 90vh;
+      max-height: 750px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: white;
+      padding: 22px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 25px;
+      margin-bottom: 7px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    #chat {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      background: #f8fafc;
+    }
+
+    .message {
+      display: flex;
+      margin-bottom: 14px;
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .bubble {
+      max-width: 82%;
+      padding: 12px 15px;
+      border-radius: 16px;
+      line-height: 1.5;
+      font-size: 15px;
+      white-space: pre-wrap;
+    }
+
+    .bot .bubble {
+      background: #e8edff;
+      color: #172554;
+      border-bottom-left-radius: 4px;
+    }
+
+    .user .bubble {
+      background: #2563eb;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid #ddd;
+      background: white;
+    }
+
+    #userInput {
+      flex: 1;
+      border: 1px solid #ccc;
+      border-radius: 25px;
+      padding: 13px 17px;
+      outline: none;
+      font-size: 15px;
+    }
+
+    #userInput:focus {
+      border-color: #2563eb;
+    }
+
+    button {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 0 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .quick-buttons {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding: 10px 12px 0;
+      background: white;
+    }
+
+    .quick-buttons button {
+      white-space: nowrap;
+      padding: 8px 13px;
+      font-size: 12px;
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    @media (max-width: 500px) {
+      .chat-container {
+        height: 95vh;
+        border-radius: 15px;
+      }
+
+      .header h1 {
+        font-size: 21px;
+      }
+
+      .bubble {
+        max-width: 88%;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-  <div class="chat-container">
-    <h1>🎓 School AI Chatbot</h1>
+<div class="chat-container">
 
-    <div id="chatBox" class="chat-box">
-      <div class="bot-message">
-        Hello! 👋 I am your School AI Assistant.
+  <div class="header">
+    <h1>🎓 School AI Chatbot</h1>
+    <p>Your Smart School Helper</p>
+  </div>
+
+  <div id="chat">
+
+    <div class="message bot">
+      <div class="bubble">
+        👋 Namaste! Main School AI Chatbot Helper hoon.
+
+        📚 Main Maths, Science, English, Hindi, GK aur school ke basic questions mein help kar sakta hoon.
+
+        Apna question type karo 😊
       </div>
     </div>
 
-    <div class="input-area">
-      <input
-        type="text"
-        id="userInput"
-        placeholder="Ask your question..."
-      >
-      <button onclick="sendMessage()">Send</button>
-    </div>
   </div>
 
-  <script src="script.js"></script>
+  <div class="quick-buttons">
+    <button onclick="quickAsk('Maths mein help chahiye')">➗ Maths</button>
+    <button onclick="quickAsk('Science mein help chahiye')">🔬 Science</button>
+    <button onclick="quickAsk('English mein help chahiye')">📖 English</button>
+    <button onclick="quickAsk('GK question batao')">🌎 GK</button>
+  </div>
+
+  <div class="input-area">
+    <input
+      id="userInput"
+      type="text"
+      placeholder="Apna question likho..."
+      autocomplete="off"
+    >
+
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+</div>
+
+<script>
+
+const chat = document.getElementById("chat");
+const input = document.getElementById("userInput");
+
+function addMessage(text, sender) {
+
+  const message = document.createElement("div");
+  message.className = "message " + sender;
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+
+  bubble.textContent = text;
+
+  message.appendChild(bubble);
+  chat.appendChild(message);
+
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function quickAsk(text) {
+  input.value = text;
+  sendMessage();
+}
+
+function calculateMath(text) {
+
+  let expression = text
+    .replace(/what is/gi, "")
+    .replace(/calculate/gi, "")
+    .replace(/solve/gi, "")
+    .replace(/kitna hai/gi, "")
+    .replace(/=+/g, "")
+    .trim();
+
+  expression = expression.replace(/×/g, "*");
+  expression = expression.replace(/÷/g, "/");
+
+  // केवल basic mathematical expressions
+  if (/^[0-9+\-*/().%\s]+$/.test(expression)) {
+
+    try {
+      const answer = Function(
+        '"use strict"; return (' + expression + ')'
+      )();
+
+      if (typeof answer === "number" && isFinite(answer)) {
+        return "🧮 Calculation:\n\n" +
+               expression + " = " + answer;
+      }
+
+    } catch (e) {}
+  }
+
+  return null;
+}
+
+function getBotReply(question) {
+
+  const q = question.toLowerCase().trim();
+
+  // Greetings
+  if (
+    q.includes("hello") ||
+    q.includes("hi") ||
+    q.includes("hey") ||
+    q.includes("namaste") ||
+    q.includes("hii")
+  ) {
+    return "👋 Namaste! 😊\n\nMain School AI Chatbot Helper hoon. Aap Maths, Science, English, Hindi ya GK ka question pooch sakte ho.";
+  }
+
+  // Maths
+  if (
+    q.includes("math") ||
+    q.includes("गणित") ||
+    q.includes("mathematics")
+  ) {
+    return "➗ Maths mein main aapki help kar sakta hoon.\n\nExamples:\n• Linear equations\n• Quadratic equations\n• Algebra\n• Fractions\n• Percentage\n• LCM/HCF\n• Square root\n• Inequalities\n\nApna exact question bhejo.";
+  }
+
+  // Science
+  if (
+    q.includes("science") ||
+    q.includes("विज्ञान")
+  ) {
+    return "🔬 Science mein main Physics, Chemistry aur Biology ke school-level questions samjha sakta hoon.\n\nApna question bhejo, main simple steps mein explain karunga.";
+  }
+
+  // English
+  if (
+    q.includes("english") ||
+    q.includes("grammar")
+  ) {
+    return "📖 English mein main grammar, tenses, nouns, verbs, sentence formation aur meanings mein help kar sakta hoon.\n\nApna question bhejo.";
+  }
+
+  // Hindi
+  if (
+    q.includes("hindi") ||
+    q.includes("हिंदी")
+  ) {
+    return "📚 Hindi mein main grammar, meanings, vilom shabd, पर्यायवाची, व्याकरण aur school questions mein help kar sakta hoon.";
+  }
+
+  // GK
+  if (
+    q.includes("gk") ||
+    q.includes("general knowledge") ||
+    q.includes("सामान्य ज्ञान")
+  ) {
+    return "🌎 GK question poochho!\n\nExample:\nIndia ki capital kya hai?\n\nMain school-level GK questions mein help karunga.";
+  }
+
+  // Capital
+  if (
+    q.includes("capital of india") ||
+    q.includes("india ki capital") ||
+    q.includes("भारत की राजधानी")
+  ) {
+    return "🇮🇳 India ki capital New Delhi hai.";
+  }
+
+  // Prime number
+  if (
+    q.includes("prime number") ||
+    q.includes("abhajya")
+  ) {
+    return "🔢 Prime number woh natural number hota hai jiske sirf 2 factors hote hain: 1 aur khud woh number.\n\nExample: 2, 3, 5, 7, 11...";
+  }
+
+  // Photosynthesis
+  if (
+    q.includes("photosynthesis") ||
+    q.includes("प्रकाश संश्लेषण")
+  ) {
+    return "🌱 Photosynthesis ek process hai jisme green plants sunlight ki help se carbon dioxide aur water se food banate hain. Is process mein oxygen bhi release hoti hai.";
+  }
+
+  // Gravity
+  if (
+    q.includes("gravity") ||
+    q.includes("गुरुत्वाकर्षण")
+  ) {
+    return "🌍 Gravity woh force hai jo objects ko Earth ki taraf attract karti hai.\n\nEarth par gravitational acceleration approximately 9.8 m/s² hota hai.";
+  }
+
+  // Water formula
+  if (
+    q.includes("formula of water") ||
+    q.includes("water ka formula") ||
+    q.includes("पानी का सूत्र")
+  ) {
+    return "💧 Water ka chemical formula H₂O hai.";
+  }
+
+  // Help
+  if (
+    q.includes("help") ||
+    q.includes("kya kar sakte")
+  ) {
+    return "😊 Main in topics mein help kar sakta hoon:\n\n➗ Maths\n🔬 Science\n📖 English\n📚 Hindi\n🌎 GK\n🧮 Basic calculations\n\nBas apna question likho.";
+  }
+
+  // Basic calculation
+  const calculation = calculateMath(q);
+
+  if (calculation) {
+    return calculation;
+  }
+
+  // Default
+  return "🤔 Main is question ka exact answer abhi nahi samajh paaya.\n\nAap question thoda simple words mein ya poora question likhkar bhejo.\n\n📚 Example:\n\"Photosynthesis kya hai?\"\n\"25 × 4 kitna hai?\"\n\"Quadratic equation kya hoti hai?\"";
+}
+
+function sendMessage() {
+
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  addMessage(text, "user");
+
+  input.value = "";
+
+  // Small thinking delay
+  setTimeout(() => {
+
+    const reply = getBotReply(text);
+
+    addMessage(reply, "bot");
+
+  }, 400);
+}
+
+input.addEventListener("keydown", function(event) {
+
+  if (event.key === "Enter") {
+    sendMessage();
+  }
+
+});
+
+</script>
+
 </body>
 </html>
